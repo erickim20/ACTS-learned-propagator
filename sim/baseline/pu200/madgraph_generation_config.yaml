@@ -1,0 +1,41 @@
+# Generate the ttbar hard scatter pool from the compiled process.
+campaign: "baseline0"
+dataset: "ttbar"
+version: "v1"
+stage: "madgraph_generation"
+
+job_config:
+  n_runs: 1
+  runs_per_node: 1
+  execution_mode: "interactive"
+
+common:
+  output_base_dir: "/output"
+
+events: 100
+seed: 42
+
+mg_base_path: "/spack/opt/spack/linux-x86_64/madgraph5amc-3.5.9-kn2dua2a6vlxac2uucs5zmvmuposmkft"
+generation_scratch_dir: "/tmp/mg_scratch"
+
+card_customizations:
+  run_card:
+    "ptj": 20.0
+    "event_norm": "sum"
+
+  shower_card:
+    "Qcut": 40.0
+    "time_shower_me_corrections": "F"
+
+  pythia8_card: {}
+
+# One file per run. This is what makes the runs independent: pythia_gen.py
+# merges pileup onto whatever hard scatter it finds in its own run directory, so
+# without the split every run would use the same first events.
+splitting_config:
+  enable: true
+  events_per_file: 4
+  max_files_per_mg_run: 100
+  output_filename: "events.hepmc"
+
+log_level: "INFO"

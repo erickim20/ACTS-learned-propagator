@@ -1,0 +1,49 @@
+# sim/muon/digitization_config_eval.yaml at 200 events, for the feature check.
+#
+# src/prop/feature_check.py needs the network's inputs as a real CKF run builds
+# them, and it needs nothing else, so the only thing that changes here is the
+# event count. Everything else is the eval config's, because a check run on a
+# different digitisation or a different seeding would not be checking the run
+# that gets measured.
+#
+#   for b in 1 2 3 4 5; do
+#     FEATURE_DUMP=/output/runs/featcheck_b${b}/features.bin \
+#     CONFIG=sim/muon/digitization_config_featcheck.yaml SEED=$((100+b)) \
+#       sim/run_reco_ckf.sh mu_s1_b${b}_eval featcheck_b${b} learned-on \
+#         /repo/cpp/q_table_B.bin
+#   done
+#   python -m prop.feature_check ~/baseline0/out/runs/featcheck_b*/features.bin \
+#       --model ~/exp/B/gtheta_B.npz
+campaign: "muon"
+dataset: "mu_gun"
+version: "v1"
+stage: "digitization"
+
+job_config:
+  n_runs: 1
+  runs_per_node: 1
+  execution_mode: "interactive"
+
+common:
+  output_base_dir: "/output"
+
+events: 200
+threads: 1
+digi: true
+reco: true
+num_seeds_per_spm: 40
+
+digi_config: /workspace/scripts/simulation/odd-full-geo-digi-config.json
+
+output_particles_root: true
+output_measurements_root: true
+
+output_parquet_arrow: false
+
+ckf_root_output: true
+ckf_finding_performance: true
+ckf_fitting_performance: true
+
+ambi_root_output: true
+ambi_finding_performance: true
+ambi_fitting_performance: true

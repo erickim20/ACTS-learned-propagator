@@ -1,0 +1,26 @@
+# Pileup 200 on top of the MadGraph ttbar hard scatter, then the ACTS merge.
+# hard_process is left unset on purpose: the signal comes from
+# events.hepmc.gz produced by madgraph_generation, and `merge: true` makes this
+# stage find it. Vertex smearing happens here and nowhere else.
+campaign: "baseline0"
+dataset: "ttbar"
+version: "v1"
+stage: "pythia_generation"
+
+job_config:
+  n_runs: 1
+  runs_per_node: 1
+  execution_mode: "interactive"
+
+common:
+  output_base_dir: "/output"
+
+events: 4
+pileup: 200
+merge: true
+poisson_sample: true
+poisson_buffer_sigma: 5.0
+
+vertex_sigma_xy: 0.0125
+vertex_sigma_z: 55.5
+vertex_sigma_t: 0.185

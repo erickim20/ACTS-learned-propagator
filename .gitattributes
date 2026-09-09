@@ -1,0 +1,5 @@
+# Everything in this repository runs on Linux, inside a container or on the
+# host. A CRLF checkout makes every shell script here fail on the first line
+# under bash, so the line ending is pinned rather than left to a per-machine
+# git config.
+* text=auto eol=lf

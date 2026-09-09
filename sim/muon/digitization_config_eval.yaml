@@ -1,0 +1,42 @@
+# sim/muon/digitization_config.yaml with the event count the S1 eval runs were
+# produced at.
+#
+# The S1 eval directories hold 10,000 events of one muon each. run_s1.sh passes
+# that count on the command line, so the `events: 100` in the file next to this
+# one never reached the sequencer for them. sim/run_reco_ckf.sh has no way to
+# pass an extra argument through to digi_and_reco.py, so re-running the
+# reconstruction of an eval directory needs the count in the file instead.
+# Nothing else here differs from the file it copies.
+campaign: "muon"
+dataset: "mu_gun"
+version: "v1"
+stage: "digitization"
+
+job_config:
+  n_runs: 1
+  runs_per_node: 1
+  execution_mode: "interactive"
+
+common:
+  output_base_dir: "/output"
+
+events: 10000
+threads: 1
+digi: true
+reco: true
+num_seeds_per_spm: 40
+
+digi_config: /workspace/scripts/simulation/odd-full-geo-digi-config.json
+
+output_particles_root: true
+output_measurements_root: true
+
+output_parquet_arrow: false
+
+ckf_root_output: true
+ckf_finding_performance: true
+ckf_fitting_performance: true
+
+ambi_root_output: true
+ambi_finding_performance: true
+ambi_fitting_performance: true

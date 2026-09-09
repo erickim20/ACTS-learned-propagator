@@ -1,0 +1,32 @@
+# Pileup 200 under the muon gun, then the ACTS merge. Arm S2.
+#
+# `hard_process` is left unset on purpose, and that is the whole mechanism.
+# pythia_gen.py:375 generates a hard scatter only when that key is present, so
+# without it the stage generates pileup and merges onto whatever signal file is
+# already in the run directory. gun_stage.py has put events.hepmc3 there, which
+# is the second name pythia_gen.py:271-276 looks for.
+#
+# The vertex smearing is the pileup 200 baseline's, unchanged: this is the
+# beamspot, not a choice of this experiment.
+campaign: "muon"
+dataset: "mu_gun_pu200"
+version: "v1"
+stage: "pythia_generation"
+
+job_config:
+  n_runs: 1
+  runs_per_node: 1
+  execution_mode: "interactive"
+
+common:
+  output_base_dir: "/output"
+
+events: 100
+pileup: 200
+merge: true
+poisson_sample: true
+poisson_buffer_sigma: 5.0
+
+vertex_sigma_xy: 0.0125
+vertex_sigma_z: 55.5
+vertex_sigma_t: 0.185

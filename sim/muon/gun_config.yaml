@@ -1,0 +1,41 @@
+# The muon gun, for arms S1 and S2.
+#
+# The pT window is not here. It is passed per bin on the command line by
+# run_s1.sh, because the bin edges are a choice of the experiment and belong
+# where that choice is stated, not spread across five near-identical files.
+#
+# `transverse: true` makes particlegun_gen.py read energy_min/energy_max as pT
+# rather than as total momentum, which is what a pT ladder needs. The generator
+# randomises the charge on its own, so `mu-` produces both signs.
+#
+# eta_max follows the truth selection's own cut of 3.0
+# (digi_and_reco.py:300). Firing wider would generate muons that no efficiency
+# denominator contains.
+#
+# The vertex is the exact origin and cannot be configured from here:
+# particlegun_gen.py:195-198 hard-codes a Gaussian vertex generator with zero
+# width.
+campaign: "muon"
+dataset: "mu_gun"
+version: "v1"
+stage: "particle_gun"
+
+job_config:
+  n_runs: 1
+  runs_per_node: 1
+  execution_mode: "interactive"
+
+common:
+  output_base_dir: "/output"
+
+events: 100
+
+particle: "mu-"
+transverse: true
+log_uniform: true
+eta_min: -3.0
+eta_max: 3.0
+phi_min: 0.0
+phi_max: 6.283185307179586
+
+log_level: "INFO"

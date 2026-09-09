@@ -1,0 +1,48 @@
+# sim/muon/digitization_config_eval.yaml with every writer switched off, and
+# nothing else changed.
+#
+# `sim/profile/digitization_noio.yaml` is the same edit to item 0's ttbar
+# configuration and records why the profile needs it: the ROOT track writers
+# extrapolate every track to the perigee through
+# `Propagator<SympyStepper, VoidNavigator>` in `libActsExamplesIoRoot.so`, so
+# propagation and `LineSurface::intersect` samples appear in the profile from
+# code that is not track finding. That file profiles the ttbar chain. The arms
+# this repository builds are measured on the single-muon eval sample, so the
+# profile of an arm needs the muon configuration with the same edit.
+#
+# The difference between this run and the one with
+# `digitization_config_eval.yaml` is what the output costs. Both are otherwise
+# the same file.
+campaign: "muon"
+dataset: "mu_gun"
+version: "v1"
+stage: "digitization"
+
+job_config:
+  n_runs: 1
+  runs_per_node: 1
+  execution_mode: "interactive"
+
+common:
+  output_base_dir: "/output"
+
+events: 10000
+threads: 1
+digi: true
+reco: true
+num_seeds_per_spm: 40
+
+digi_config: /workspace/scripts/simulation/odd-full-geo-digi-config.json
+
+output_particles_root: false
+output_measurements_root: false
+
+output_parquet_arrow: false
+
+ckf_root_output: false
+ckf_finding_performance: false
+ckf_fitting_performance: false
+
+ambi_root_output: false
+ambi_finding_performance: false
+ambi_fitting_performance: false

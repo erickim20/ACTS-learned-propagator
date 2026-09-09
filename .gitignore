@@ -1,0 +1,54 @@
+# environments and build
+.venv/
+__pycache__/
+*.pyc
+*.egg-info/
+build/
+dist/
+
+# simulation output
+sim_out/
+teacher/
+
+# generated data. Everything here is reproducible from a script in this repo.
+*.parquet
+*.npz
+*.root
+*.obj
+*.log
+*.csv
+
+# the ODD field map, 514 MB. Extracted from the ODD image, not stored here.
+odd-bfield.txt
+odd-bfield.csv
+
+# generated figures
+figures/
+fig/
+*.png
+*.pdf
+
+# C++ generated inputs and binaries. gtheta_weights.hpp IS tracked: the port
+# means nothing without the weights it was checked against, and the source line
+# at the top of that file is the only record of which model it holds.
+cpp/reference.bin
+cpp/reference_jac.bin
+cpp/field.bin
+cpp/muon_jumps*.bin
+cpp/q_table*.bin
+cpp/modules.csv
+cpp/test_kernel
+cpp/test_jacobian
+cpp/bench_kernel
+cpp/link_probe
+cpp/geom_probe
+cpp/cov_probe
+cpp/geom_dump
+cpp/*.core
+cpp/acts_headers/
+cpp/learned_ckf*.so
+
+# ACTS sources at the image's build commit, fetched by cpp/fetch_ckf_src.sh
+cpp/acts_examples_src/
+
+.DS_Store

@@ -1,0 +1,27 @@
+# Geant4 through ddsim. One thread per run; the parallelism is across runs,
+# because that is what fits 16 cores and 15 GB.
+campaign: "baseline0"
+dataset: "ttbar"
+version: "v1"
+stage: "simulation"
+
+job_config:
+  n_runs: 1
+  runs_per_node: 1
+  execution_mode: "interactive"
+
+common:
+  output_base_dir: "/output"
+
+events: 4
+input_filename: merged_events.hepmc3
+threads: 1
+minimalKineticEnergy: 0.1
+truthParticleHandler: "Geant4FullTruthParticleHandler"
+
+# The merge stage already smeared the vertex. Smearing again here would double
+# the beamspot.
+vertexOffset: [0.0, 0.0, 0.0, 0.0]
+vertexSigma: [0.0, 0.0, 0.0, 0.0]
+
+ddsim_printLevel: 5

@@ -1,0 +1,47 @@
+# Compile the ttbar matrix elements. One-off, and the long pole of the chain.
+#
+# Two departures from configs_production/full_pileup/ttbar, both stated next to
+# the number this produces:
+#
+#   - mg_base_path is the MadGraph in the pinned image. The ColliderML
+#     docker_test config carries a spack hash from a different image
+#     (2n657hx6...) and would silently point at nothing here.
+#   - the process is p p > t t~ [QCD] alone. Production adds +1j and +2j with
+#     FxFx merging, which multiplies both the compile and the generation. For a
+#     tracking baseline the extra jet multiplicity moves the track population
+#     very little, and this is the variant ColliderML itself runs locally.
+campaign: "baseline0"
+dataset: "ttbar"
+version: "v1"
+stage: "madgraph_init"
+
+job_config:
+  n_runs: 1
+  runs_per_node: 1
+  execution_mode: "interactive"
+
+common:
+  output_base_dir: "/output"
+
+mg_model: "sm-no_b_mass"
+mg_definitions: []
+mg_generate_command: |
+  generate p p > t t~ [QCD]
+
+mg_base_path: "/spack/opt/spack/linux-x86_64/madgraph5amc-3.5.9-kn2dua2a6vlxac2uucs5zmvmuposmkft"
+generation_scratch_dir: "/tmp/mg_scratch"
+
+card_customizations:
+  run_card:
+    "parton_shower": "PYTHIA8"
+    "ebeam1": 7000.0
+    "ebeam2": 7000.0
+    "ptj": 20.0
+
+  shower_card:
+    "Qcut": 40.0
+    "time_shower_me_corrections": "F"
+
+  pythia8_card: {}
+
+log_level: "INFO"

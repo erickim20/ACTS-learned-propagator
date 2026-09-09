@@ -1,0 +1,32 @@
+# Geant4 through ddsim for S1: the gun's own HepMC3 file, no pileup and no
+# merge stage.
+#
+# input_filename is the name particlegun_gen.py writes (particlegun_gen.py:218).
+# Without this line ddsim_run.py falls back to merged_events.hepmc3, which S1
+# never produces.
+#
+# There is no merge stage in S1, so nothing has smeared the vertex and nothing
+# here should: the gun fires from the origin and the sample is meant to keep it.
+campaign: "muon"
+dataset: "mu_gun"
+version: "v1"
+stage: "simulation"
+
+job_config:
+  n_runs: 1
+  runs_per_node: 1
+  execution_mode: "interactive"
+
+common:
+  output_base_dir: "/output"
+
+events: 100
+input_filename: events.hepmc3
+threads: 1
+minimalKineticEnergy: 0.1
+truthParticleHandler: "Geant4FullTruthParticleHandler"
+
+vertexOffset: [0.0, 0.0, 0.0, 0.0]
+vertexSigma: [0.0, 0.0, 0.0, 0.0]
+
+ddsim_printLevel: 5

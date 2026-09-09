@@ -1,0 +1,41 @@
+# Digitization and the stock CKF on the muon sample. Nothing here is tuned, and
+# nothing here differs from sim/baseline/pu200/digitization_config.yaml except
+# the event count: the whole point of the ladder is that the reconstruction is
+# the production one and only the sample changes.
+#
+# The production digitization file is named explicitly. Without this line
+# digi_and_reco.py falls back to the ODD's own odd-digi-smearing-config.json,
+# which is a different and much smaller configuration.
+campaign: "muon"
+dataset: "mu_gun"
+version: "v1"
+stage: "digitization"
+
+job_config:
+  n_runs: 1
+  runs_per_node: 1
+  execution_mode: "interactive"
+
+common:
+  output_base_dir: "/output"
+
+events: 100
+threads: 1
+digi: true
+reco: true
+num_seeds_per_spm: 40
+
+digi_config: /workspace/scripts/simulation/odd-full-geo-digi-config.json
+
+output_particles_root: true
+output_measurements_root: true
+
+output_parquet_arrow: false
+
+ckf_root_output: true
+ckf_finding_performance: true
+ckf_fitting_performance: true
+
+ambi_root_output: true
+ambi_finding_performance: true
+ambi_fitting_performance: true

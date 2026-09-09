@@ -1,0 +1,46 @@
+# item 0's own digitization and CKF configuration with every writer switched
+# off, and nothing else changed.
+#
+# The profile needs this because the writers are not a small correction to it.
+# `Propagator<SympyStepper, VoidNavigator>::propagate` sits in
+# `libActsExamplesIoRoot.so`: the track writers extrapolate every track to the
+# perigee, so propagation symbols appear in the profile from code that is not
+# track finding, and `LineSurface::intersect` appears with them. Reading the
+# stepper's share of track finding off a profile that has the writers in it
+# would charge the writers' transport to the CKF.
+#
+# The difference between this run and the one with `digitization_config.yaml` is
+# what the output costs. Both are otherwise the same file.
+campaign: "baseline0"
+dataset: "ttbar"
+version: "v1"
+stage: "digitization"
+
+job_config:
+  n_runs: 1
+  runs_per_node: 1
+  execution_mode: "interactive"
+
+common:
+  output_base_dir: "/output"
+
+events: 4
+threads: 1
+digi: true
+reco: true
+num_seeds_per_spm: 40
+
+digi_config: /workspace/scripts/simulation/odd-full-geo-digi-config.json
+
+output_particles_root: false
+output_measurements_root: false
+
+output_parquet_arrow: false
+
+ckf_root_output: false
+ckf_finding_performance: false
+ckf_fitting_performance: false
+
+ambi_root_output: false
+ambi_finding_performance: false
+ambi_fitting_performance: false
