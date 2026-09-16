@@ -30,7 +30,17 @@ EXT=$("$PY_DIR/bin/python3" -c "import sysconfig; print(sysconfig.get_config_var
 # line already is, and a comment is not evidence.
 # `NoiseTable::load` compares it against the one the Q table records, so a
 # table measured on another model is refused rather than armed.
-WMD5=$(md5sum gtheta_weights.hpp | cut -c1-32)
+#
+# The digest is over the header's non-comment lines: a line whose first
+# non-blank characters are `//` is dropped and every other line is kept byte
+# for byte with a newline after it.
+#
+# Over the whole file it named the file and not the model. The release filter
+# rewrites the `source:` comment on line 2, so two copies of one model hash
+# differently as files, and a table stamped against one was refused by a build
+# from the other. `prop.export_qtable` implements the same sentence in Python
+# and the two are checked against each other on every header that matters.
+WMD5=$(grep -v '^[[:space:]]*//' gtheta_weights.hpp | md5sum | cut -c1-32)
 
 echo "ACTS     $ACTS_DIR"
 echo "pybind11 $PB_DIR"

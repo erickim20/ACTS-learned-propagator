@@ -44,6 +44,14 @@ about to arm it, the way it already refuses a material-on table. It is required
 rather than optional for the same reason `--material-off` is: the default has
 to be to fail rather than to guess.
 
+The model is named by a digest over the header's non-comment lines and not by
+the md5 of the file. The release filter rewrites the `source:` comment on the
+way out, so two copies of one model hash differently as files: a table stamped
+against one could never match a build made from the other, for any model.
+`cpp/incontainer_build_ckf.sh` computes the same digest in shell and stamps it
+into the binary, and the two are checked against each other on every header
+that matters.
+
 Usage:
     python -m prop.export_qtable --table Q_nomat.parquet --corr Q_nomat_corr.npz \
         --material-off --weights cpp/gtheta_weights.hpp --field-gate 0.05
@@ -78,6 +86,23 @@ OUT = pathlib.Path("cpp")
 TO_ACTS = np.array([UM, UM, MRAD, MRAD, 1.0])
 COLS = ("sig_c0_um", "sig_c1_um", "sig_phi_mrad", "sig_theta_mrad",
         "sig_qop_rel")
+
+
+def weights_digest(path):
+    """The md5 of the header's non-comment lines: a line whose first non-blank
+    characters are `//` is dropped and every other line is kept byte for byte
+    with a newline after it.
+
+    One sentence, implemented twice. `cpp/incontainer_build_ckf.sh` is the
+    other half and stamps the same digest into the binary; what keeps them
+    honest is running both on the same headers.
+    """
+    lines = pathlib.Path(path).read_bytes().split(b"\n")
+    if lines and lines[-1] == b"":
+        lines.pop()
+    kept = [ln + b"\n" for ln in lines
+            if not ln.lstrip().startswith(b"//")]
+    return hashlib.md5(b"".join(kept)).hexdigest()
 
 
 def sigma_of(row):
@@ -159,9 +184,10 @@ def main():
     ap.add_argument("--out", default="cpp/q_table.bin")
     ap.add_argument("--weights", default=None,
                     help="the cpp/gtheta_weights.hpp the residuals in --table "
-                         "were dumped from. Its md5 goes in the header and "
-                         "NoiseTable::load refuses a table whose md5 is not "
-                         "the one the binary was built from.")
+                         "were dumped from. The digest of its non-comment "
+                         "lines goes in the header and NoiseTable::load "
+                         "refuses a table whose digest is not the one the "
+                         "binary was built from.")
     ap.add_argument("--weights-md5", default=None,
                     help="that md5 directly, for a header that is no longer on "
                          "disk. Exactly one of --weights and --weights-md5.")
@@ -197,7 +223,7 @@ def main():
                          "measured on, and a table measured at one threshold "
                          "describes a different population at another")
     wmd5 = (a.weights_md5 if a.weights_md5 is not None
-            else hashlib.md5(pathlib.Path(a.weights).read_bytes()).hexdigest())
+            else weights_digest(a.weights))
     if len(wmd5) != 32 or any(c not in "0123456789abcdef" for c in wmd5):
         raise SystemExit("--weights-md5 must be 32 lower-case hex digits, "
                          "got " + repr(wmd5))
