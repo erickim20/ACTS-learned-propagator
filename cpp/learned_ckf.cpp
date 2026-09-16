@@ -110,7 +110,8 @@ std::shared_ptr<TrackFinderFunction> makeLearnedTrackFinderFunction(
     const std::string& cellSigmaPath,
     double cellSig0, double cellSig1, bool network, bool resolveMaterial,
     bool navSeam, bool navWalk, bool navMaterial, bool seamMaterial,
-    bool plannedOnly, double fieldGate, bool publishTrack, bool localCore) {
+    bool plannedOnly, double fieldGate, bool publishTrack, bool localCore,
+    double sigmaConst, double sigmaHelix) {
   auto logger = Acts::getDefaultLogger(
       "LearnedCKF", static_cast<Acts::Logging::Level>(level));
 
@@ -122,6 +123,10 @@ std::shared_ptr<TrackFinderFunction> makeLearnedTrackFinderFunction(
   stepper.setUseSeamMaterial(seamMaterial);
   stepper.setPlannedOnly(plannedOnly);
   stepper.setFieldGate(fieldGate);
+  // One scale per branch on the declared covariance. One is off for both,
+  // and off is the identity.
+  stepper.setSigmaConst(sigmaConst);
+  stepper.setSigmaHelix(sigmaHelix);
   // The three runtime sites, behind one switch. False is
   // the fixed 2 T core every arm on disk was taken on; true reads the map
   // at each jump's source, which `toJump` already has in hand.
@@ -185,6 +190,8 @@ std::shared_ptr<TrackFinderFunction> makeLearnedTrackFinderFunction(
       plannedOnly ? "true" : "false", fieldGate,
       cellSigmaPath.empty() ? "constants" : cellSigmaPath.c_str(),
       publishTrack ? "true" : "false", localCore ? "source" : "fixed");
+  std::printf("[learned_ckf] sigmaConst=%.6g sigmaHelix=%.6g\n",
+              sigmaConst, sigmaHelix);
   // The provenance this run and this table agreed on, in the run's own log.
   const std::string prov =
       qtab == nullptr ? std::string("none")
@@ -249,6 +256,7 @@ PYBIND11_MODULE(learned_ckf, m) {
         py::arg("navMaterial") = true, py::arg("seamMaterial") = true,
         py::arg("plannedOnly") = false, py::arg("fieldGate") = 0.0,
         py::arg("publishTrack") = true, py::arg("localCore") = false,
+        py::arg("sigmaConst") = 1.0, py::arg("sigmaHelix") = 1.0,
         "Build the type-erased track finder. `learned=False` is the switch-off "
         "arm: the inner EigenStepper runs and the output is bit-identical to a "
         "stock EigenStepper build. `qtable` is the binary "
@@ -263,6 +271,10 @@ PYBIND11_MODULE(learned_ckf, m) {
         "wrapper forwards all twelve NavigatorConcept members, bit-identical "
         "to navSeam=False; the [navcensus] block on stderr is what "
         "distinguishes a transparent wrapper from one that never ran. "
+        "`sigmaConst` scales the declared covariance on the branch the "
+        "network fired on, with the head off, and `sigmaHelix` scales it on "
+        "the branch that ran when it did not. Both are 1 by default and 1 is "
+        "the identity. "
         "`localCore=True` runs the helix core at the map value at each "
         "jump's source instead of the fixed 2 T of LearnedTransport.hpp's "
         "kBHelix: the three runtime sites, behind one "

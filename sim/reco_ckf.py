@@ -189,6 +189,22 @@ def main():
                          "the 5 percent of 2 T the barrel and endcap line "
                          "is drawn at. "
                          "Zero is off. Refused on an arm with no network")
+    ap.add_argument("--sigma-const", type=float, default=1.0,
+                    help="a blanket scale on the declared covariance, on the "
+                         "branch the network fired on, with the head off. "
+                         "An earlier arm put this at 1.789; below one it "
+                         "NARROWS what the "
+                         "filter is told the transport got wrong. One is off "
+                         "and is the default. Refused with --sigma-head, "
+                         "which writes that scale itself")
+    ap.add_argument("--sigma-helix", type=float, default=1.0,
+                    help="the same scale on the branch that runs when the "
+                         "network did not fire. That branch "
+                         "carries 4.166 of the deployed arm's 4.964 points of "
+                         "fake excess over stock at pileup 200 and nothing "
+                         "has ever been armed on it but the tail calibration "
+                         "and the blanket factor of two. One is off and is "
+                         "the default")
     ap.add_argument("--core-bz", default="fixed",
                     choices=["fixed", "source"],
                     help="which field the helix core of the learned "
@@ -252,6 +268,24 @@ def main():
             "--field-gate needs --stepper new-learned; it takes the network "
             "off where the field is nominal and no other arm has one to take "
             "off")
+
+    # Both scales act inside `LearnedStepper::step`, which only a
+    # `new-learned` arm reaches. Same rule as the flags around them: an arm
+    # that accepted a flag and ignored it would be labelled as an arm it is
+    # not.
+    for flag, val in (("--sigma-const", args.sigma_const),
+                      ("--sigma-helix", args.sigma_helix)):
+        if val != 1.0 and args.stepper != "new-learned":
+            raise SystemExit(
+                f"{flag} needs --stepper new-learned; it scales the noise on "
+                "one branch of the two-branch table and no other arm has two")
+        if val <= 0.0:
+            raise SystemExit(f"{flag} must be positive; it enters the "
+                             "covariance squared")
+    if args.sigma_const != 1.0 and args.sigma_head:
+        raise SystemExit(
+            "--sigma-const is refused with --sigma-head: the head writes the "
+            "scale on that branch and the constant is for the head OFF")
 
     if args.core_bz == "source":
         # Same rule as the flags around it. On `stock`, `learned-off` and
@@ -363,6 +397,7 @@ def main():
                 seamMaterial=seam_material,
                 plannedOnly=args.planned_only,
                 fieldGate=args.field_gate,
+                sigmaConst=args.sigma_const, sigmaHelix=args.sigma_helix,
                 publishTrack=not args.no_publish_track,
                 localCore=args.core_bz == "source"))
         ae.TrackFindingAlgorithm = swap
@@ -376,6 +411,8 @@ def main():
               f"seam_material={seam_material} "
               f"planned_only={args.planned_only} "
               f"field_gate={args.field_gate} "
+              f"sigma_const={args.sigma_const} "
+              f"sigma_helix={args.sigma_helix} "
               f"publish_track={not args.no_publish_track} "
               f"core_bz={args.core_bz} "
               f"net_core_fit={args.net_core_fit}", flush=True)

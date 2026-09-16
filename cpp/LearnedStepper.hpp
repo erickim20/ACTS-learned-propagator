@@ -335,6 +335,25 @@ class LearnedStepper {
   /// their effects are not separable.
   void setFieldGate(double tesla) { m_fieldGate = tesla; }
 
+  /// A blanket scale on the branch the network fired on, with the head off.
+  ///
+  /// An earlier arm put this same knob at 1.789, the
+  /// median of the head's own per-jump scale, and every scale this project
+  /// has armed has been at or above one. Below one it narrows the declared
+  /// covariance on exactly the transports the head reaches and no others.
+  /// One is off and is the default.
+  void setSigmaConst(double scale) { m_sigmaConst = scale; }
+
+  /// The same, on the branch that runs when the network did not fire.
+  ///
+  /// `LearnedTransport::transport` returns `m = 1` there
+  /// (`LearnedTransport.hpp:350`), so nothing but the table's own second
+  /// branch has ever set the width of that population. It carries 4.166 of
+  /// the deployed arm's 4.964 points of fake excess over `stock` at
+  /// pileup 200. One is off and is the default, and a multiply by
+  /// exactly 1.0 leaves the scale the head or the helix wrote to the bit.
+  void setSigmaHelix(double scale) { m_sigmaHelix = scale; }
+
   /// Run the helix core at the map value at each jump's source.
   ///
   /// Measured offline at 1.957 of the helix's 7.606 points of `hits lost` on
@@ -609,7 +628,31 @@ class LearnedStepper {
           // returns (`EigenStepper.ipp:368` accumulates the same h). The chord
           // |p.pos - position| is a different and always smaller number.
           const double h = writeBack(&state, jump, p);
-          state.sigmaScale = m_useSigmaHead ? p.m : 1.0;
+          // One runtime scale per branch.
+          //
+          // The two are separated on `netOn` and on nothing else, because
+          // that is the same decision `armNoise` selects the branch of the
+          // table with, twelve lines down. The constant replaces the scale
+          // on the fired branch, which is what the head writes and what an
+          // earlier arm put 1.789 on. The helix scale multiplies the
+          // scale on the other branch, where `LearnedTransport::transport`
+          // returns `m = 1` with the head on and off alike.
+          //
+          // With both at their defaults this is the line it replaces: the
+          // fired branch reads `m_sigmaConst = 1.0` where the old line read
+          // the literal 1.0, and the helix branch multiplies by exactly 1.0,
+          // which IEEE-754 leaves unchanged for every value a double can take.
+          //
+          // At `FIELD_GATE=999` nothing fires, so the constant's arms are the
+          // head-off arm to the bit and the helix scale's are not. That
+          // asymmetry is the null check.
+          double scale = 1.0;
+          if (netOn) {
+            scale = m_useSigmaHead ? p.m : m_sigmaConst;
+          } else {
+            scale = (m_useSigmaHead ? p.m : 1.0) * m_sigmaHelix;
+          }
+          state.sigmaScale = scale;
           armNoise(&state, *target, jump, !netOn);
           // The whole leg has just been flown, so every crossing on the plan
           // is behind the state now. `applyPlanRest` is where they are paid.
@@ -1409,6 +1452,8 @@ class LearnedStepper {
   bool m_useNetwork = true;
   bool m_plannedOnly = false;
   double m_fieldGate = 0.0;
+  double m_sigmaConst = 1.0;
+  double m_sigmaHelix = 1.0;
   bool m_localCore = false;
   double m_sig0 = 1.0;
   double m_sig1 = 1.0;

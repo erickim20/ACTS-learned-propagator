@@ -126,6 +126,8 @@ exec docker run --rm "${opts[@]}" \
   -e NO_PUBLISH_TRACK="${NO_PUBLISH_TRACK:-}" \
   -e PLANNED_ONLY="${PLANNED_ONLY:-}" \
   -e FIELD_GATE="${FIELD_GATE:-}" \
+  -e SIGMA_CONST="${SIGMA_CONST:-}" \
+  -e SIGMA_HELIX="${SIGMA_HELIX:-}" \
   -e CORE_BZ="${CORE_BZ:-}" \
   -e NET_CORE_FIT="${NET_CORE_FIT:-}" \
   -e NO_SEAM_MATERIAL="${NO_SEAM_MATERIAL:-}" \
