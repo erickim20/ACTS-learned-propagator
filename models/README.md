@@ -13,6 +13,8 @@ it, and what is still missing.
 | `tables/q_B_g020.bin` | 31,414 | `b06dc26827d26081e403a6f55b3782cf` | process noise, field gate 0.20 |
 | `tables/q_B_g040.bin` | 31,414 | `f03ca2d7e8b7bf6a10520ccc3e5cfa98` | process noise, field gate 0.40 |
 | `tables/q_B_g999.bin` | 31,414 | `1ed4d5b068061e9c856ae23bfaa3127e` | process noise, field gate 999 |
+| `gtheta_gonly.npz` | 50,150 | `6882d2159847ef3e2289ba8607654864` | the fit `cpp/gtheta_weights.hpp` holds |
+| `sigma_head_gonly.npz` | 647,870 | `1d7ece65500936b70dba4743d32a8c5b` | the per-jump sigma head for that fit |
 | `gtheta_S.npz` | 50,150 | `49a2ddd421afbe5908b8a7e2dbea6805` | a different fit, see below |
 | `sigma_head_S.npz` | 648,004 | `ee727760caec0c1b5be6721b51caf838` | the per-jump sigma head for that other fit |
 | `fixtures/muon_jumps.bin` | 6,488,780 | `3709ef6cde491bca96a7f95cf4189f53` | 4,000 real ODD jumps onto their own module planes, the input `bench_kernel` reads |
@@ -34,6 +36,18 @@ table carries at byte 24 of its own header.
 | `cpp/gtheta_weights.hpp` | 156,507 bytes, md5 `3945e23e28c20afc33a29a169839c259` |
 | its non-comment digest | `6221937713ebc4d742f45477595ec4de` |
 | the stamp in all six tables | `6221937713ebc4d742f45477595ec4de` |
+
+`gtheta_gonly.npz` and `sigma_head_gonly.npz` are that fit. Re-exporting them
+rebuilds the header:
+
+    python -m prop.export_kernel --model models/gtheta_gonly.npz \
+        --head models/sigma_head_gonly.npz --pairs <teacher> --no-field
+
+and the result has the same non-comment digest,
+`6221937713ebc4d742f45477595ec4de`. It is not the same FILE as the header here:
+the `source:` comment on line 2 records the paths the exporter was given, so a
+re-export names the reader's own paths and the file md5 differs. The digest
+excludes comments for exactly that reason.
 
 `cpp/incontainer_build_ckf.sh` computes that digest and compiles it in, and
 `NoiseTable::load` compares it against what the table records. The digest is
@@ -89,25 +103,29 @@ source change this branch also carries.
 
 ## What is not here, and why
 
-**The npz behind the fit this repository ships are not here.** `gtheta_S.npz`
-and `sigma_head_S.npz` are a different fit from the one in
-`cpp/gtheta_weights.hpp`. They are the whole-population fit, whose non-comment
-digest is `833ac83de2ed3dce591883139bda3b9b`; the header here is the fit trained
-on the gated population, `6221937713ebc4d742f45477595ec4de`. With comments
-removed the two differ in 974 of their 1,023 weight lines. They are two fits and
-not two spellings of one.
+**Two fits are here and only one of them has tables.** `gtheta_gonly.npz` and
+`sigma_head_gonly.npz` are the fit `cpp/gtheta_weights.hpp` holds and every
+table was measured on, trained on the gated population, digest
+`6221937713ebc4d742f45477595ec4de`. `gtheta_S.npz` and `sigma_head_S.npz` are
+the whole-population fit, digest `833ac83de2ed3dce591883139bda3b9b`. With
+comments removed the two headers differ in 974 of their 1,023 weight lines.
+They are two fits and not two spellings of one.
 
 | model | non-comment digest | npz | bytes | md5 | here |
 | --- | --- | --- | ---: | --- | :---: |
-| gated, which the header and the tables are | `6221937713ebc4d742f45477595ec4de` | `gtheta_gonly.npz` | 50,150 | `6882d2159847ef3e2289ba8607654864` | no |
-| | | `sigma_head_gonly.npz` | 647,870 | `1d7ece65500936b70dba4743d32a8c5b` | no |
+| gated, which the header and the tables are | `6221937713ebc4d742f45477595ec4de` | `gtheta_gonly.npz` | 50,150 | `6882d2159847ef3e2289ba8607654864` | yes |
+| | | `sigma_head_gonly.npz` | 647,870 | `1d7ece65500936b70dba4743d32a8c5b` | yes |
 | whole population | `833ac83de2ed3dce591883139bda3b9b` | `gtheta_S.npz` | 50,150 | `49a2ddd421afbe5908b8a7e2dbea6805` | yes |
 | | | `sigma_head_S.npz` | 648,004 | `ee727760caec0c1b5be6721b51caf838` | yes |
 
-So `cpp/gtheta_weights.hpp` cannot be rebuilt from anything in this repository.
-It is the only copy of that fit here, and the `source:` comment at the top of it
-is the only record of which npz it came from. The two npz that are here rebuild
-the other fit, and a table for that fit has not been measured.
+The whole-population pair stays. It is the model this repository published
+first and the one the reports up to that point were taken on, so removing it
+would delete the only published copy of a model those numbers belong to. Arming
+a table with a build made from it is not a risk the reader has to avoid by
+reading this file: `NoiseTable::load` compares the digest and refuses, and the
+message names both values. No table here is measured against
+`833ac83de2ed3dce591883139bda3b9b` and none is planned, because that would be a
+new measurement and not a re-export.
 
 **Two older tables are not here.** They carry no stamp at all, so which model
 they measure cannot be read out of the file, and `NoiseTable::load` refuses a
@@ -139,6 +157,6 @@ table in the top-level README.
 | arm the stepper with a measured `Q` | yes, any of the six tables, at its own gate |
 | check that a table and the build agree before arming | yes, the digest command above against byte 24 of the table |
 | run `bench_kernel` | yes, from `fixtures/muon_jumps.bin` |
-| rebuild `cpp/gtheta_weights.hpp` | no, the npz behind it are not here |
+| rebuild `cpp/gtheta_weights.hpp` | yes, `prop.export_kernel` from `gtheta_gonly.npz` and `sigma_head_gonly.npz`; the digest matches, the file md5 does not, because line 2 names the exporter's own paths |
 | run `test_kernel` | no, `reference.bin` is not published |
 | reproduce the measurement that made a table | no, that needs the residual dump and the simulated sample, neither of which is here |
