@@ -105,6 +105,10 @@ Two generated files are tracked, because nothing else records them:
 `cpp/acts_examples_src/` holds ACTS sources at the image's build commit and is
 not tracked either. `cpp/fetch_ckf_src.sh` retrieves them.
 
+`models/` holds the fit `cpp/gtheta_weights.hpp` was exported from and the
+input `bench_kernel` reads, and records what the measured process noise tables
+are and why they are not here. See `models/README.md`.
+
 ## License
 
 MPL-2.0, the same license as ACTS. See `LICENSE`.

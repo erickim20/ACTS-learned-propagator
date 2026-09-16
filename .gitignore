@@ -13,6 +13,10 @@ teacher/
 # generated data. Everything here is reproducible from a script in this repo.
 *.parquet
 *.npz
+# except the fit itself, which is not reproducible from anything here: it is
+# the output of a training run, and cpp/gtheta_weights.hpp is it written out
+# as C. models/README.md says what each file is.
+!models/*.npz
 *.root
 *.obj
 *.log
